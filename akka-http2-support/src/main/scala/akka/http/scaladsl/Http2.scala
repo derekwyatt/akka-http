@@ -6,5 +6,5 @@ package akka.http.scaladsl
 
 /** Entry point for Http/2 server */
 object Http2 {
-
+  // FIXME: won't having the same package as top-level break osgi?
 }
