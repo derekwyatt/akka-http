@@ -105,10 +105,10 @@ class One2OneBidiFlowSpec extends AkkaSpec {
         .via(One2OneBidiFlow[Int, Int](MAX_PENDING) join Flow.fromSinkAndSourceMat(Sink.ignore, Source.fromPublisher(out))(Keep.left))
         .runWith(Sink.ignore)
 
-      Thread.sleep(50)
+      Thread.sleep(200)
       val x = seen.get()
       (1 to 8) foreach out.sendNext
-      Thread.sleep(50)
+      Thread.sleep(200)
       seen.get should ===(x + 8)
 
       out.sendComplete() // To please assertAllStagesStopped
