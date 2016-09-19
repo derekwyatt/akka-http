@@ -11,8 +11,12 @@ import org.scalatest.concurrent.ScalaFutures
 class ResponseHeaderHpackCompressionSpec extends AkkaSpec with ScalaFutures {
   implicit val mat = ActorMaterializer()
 
-  "HttpResponseHeaderHpackCompression" must {
-    "compress example-c6-1 OK response status code" in {
+  "ResponseHeaderHpackCompression" must {
+    "compress example response w/o huffman coding from spec - C.5.1 - first response" in pending
+    "compress example response w/o huffman coding from spec - C.5.2 - second response" in pending
+    "compress example response w/o huffman coding from spec - C.5.3 - third response" in pending
+
+    "compress example response with huffman coding from spec - C.6.1 - first response" in {
       // example from: https://http2.github.io/http2-spec/compression.html#rfc.section.C.6.1
 
       /*
@@ -32,13 +36,15 @@ class ResponseHeaderHpackCompressionSpec extends AkkaSpec with ScalaFutures {
       val event = runToSingleFrameEvent(response)
 
       val expectedHeaderBlockFragment =
-        """|4882 6402 5885 aec3 771a 4b61 96d0 7abe 
-           |9410 54d4 44a8 2005 9504 0b81 66e0 82a6 
-           |2d1b ff6e 919d 29ad 1718 63c7 8f0b 97c8 
+        """|4882 6402 5885 aec3 771a 4b61 96d0 7abe
+           |9410 54d4 44a8 2005 9504 0b81 66e0 82a6
+           |2d1b ff6e 919d 29ad 1718 63c7 8f0b 97c8
            |e9ae 82ae 43d3
            |"""
       assertBlockFragment(event, expectedHeaderBlockFragment)
     }
+    "compress example response with huffman coding - C.6.2 - second response" in pending
+    "compress example response with huffman coding - C.6.3 - third response" in pending
   }
 
   def runToSingleFrameEvent(response: HttpResponse): HeadersFrame = {

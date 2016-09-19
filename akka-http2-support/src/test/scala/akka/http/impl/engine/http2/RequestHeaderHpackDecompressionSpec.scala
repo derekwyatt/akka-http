@@ -18,7 +18,6 @@ class RequestHeaderHpackDecompressionSpec extends AkkaSpec with ScalaFutures {
   "RequestHeaderDecompression" must {
     "decompress spec-example-1 to right path (Uri)" in {
       val headerBlock = encodedPathSamplePath
-      val headers = Map(":path" → "/sample/path")
 
       val bytes = parseHeaderBlock(headerBlock)
       val frames = List(HeadersFrame(0, false, true, bytes))
@@ -48,6 +47,14 @@ class RequestHeaderHpackDecompressionSpec extends AkkaSpec with ScalaFutures {
       request.method should ===(HttpMethods.POST)
       request.uri.toString should ===("/sample/path")
     }
+
+    "decompress example request w/o huffman coding from spec - C.3.1 - first request" in pending
+    "decompress example request w/o huffman coding from spec - C.3.2 - second request" in pending
+    "decompress example request w/o huffman coding from spec - C.3.3 - third request" in pending
+
+    "decompress example request w huffman coding from spec - C.4.1 - first request" in pending
+    "decompress example request w huffman coding from spec - C.4.2 - second request" in pending
+    "decompress example request w huffman coding from spec - C.4.3 - third request" in pending
   }
 
   def runToRequest(frames: List[HeadersFrame]): HttpRequest = {
