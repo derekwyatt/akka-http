@@ -1,16 +1,13 @@
-package akka.http.scaladsl.impl.parsing
+package akka.http.impl.engine.http2
 
-import akka.http.impl.engine.parsing.RequestHeaderDecompression
 import akka.http.scaladsl.model.{ HttpMethods, HttpRequest }
-import akka.http.scaladsl.model2.HeadersFrame
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{ Sink, Source }
 import akka.testkit.AkkaSpec
 import akka.util.ByteString
 import org.scalatest.concurrent.ScalaFutures
 
-class HttpRequestHeaderDecompressionSpec extends AkkaSpec with ScalaFutures {
-
+class RequestHeaderHpackDecompressionSpec extends AkkaSpec with ScalaFutures {
   implicit val mat = ActorMaterializer()
 
   // test data from: https://github.com/twitter/hpack/blob/master/hpack/src/test/resources/hpack
@@ -55,7 +52,7 @@ class HttpRequestHeaderDecompressionSpec extends AkkaSpec with ScalaFutures {
 
   def runToRequest(frames: List[HeadersFrame]): HttpRequest = {
     Source.fromIterator(() ⇒ frames.iterator)
-      .via(new RequestHeaderDecompression)
+      .via(new RequestHeaderHpackDecompression)
       .runWith(Sink.head)
       .futureValue
   }

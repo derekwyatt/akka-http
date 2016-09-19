@@ -1,20 +1,14 @@
-package akka.http.scaladsl.impl.parsing
+package akka.http.impl.engine.http2
 
-import akka.http.impl.engine.parsing.RequestHeaderDecompression
-import akka.http.impl.engine.rendering.ResponseHeaderHpackCompression
-import akka.http.impl.util.StringRendering
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.model2.{ FrameEvent, HeadersFrame }
-import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{ Sink, Source }
-import akka.testkit.AkkaSpec
-import akka.util.ByteString
-import org.scalatest.concurrent.ScalaFutures
 import akka.http.scaladsl.model.headers._
+import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Sink
+import akka.stream.scaladsl.Source
+import akka.testkit.AkkaSpec
+import org.scalatest.concurrent.ScalaFutures
 
-class HttpResponseHeaderHpackCompressionSpec extends AkkaSpec with ScalaFutures {
-
+class ResponseHeaderHpackCompressionSpec extends AkkaSpec with ScalaFutures {
   implicit val mat = ActorMaterializer()
 
   "HttpResponseHeaderHpackCompression" must {

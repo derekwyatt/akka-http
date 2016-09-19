@@ -1,16 +1,16 @@
-package akka.http.impl.engine.rendering
+/**
+ * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
+ */
+
+package akka.http.impl.engine.http2
 
 import java.io.OutputStream
 import java.nio.{ ByteBuffer, ByteOrder }
-import java.util.Locale
 
-import akka.http.impl.util.EnhancedString
-import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
-import akka.http.scaladsl.model2.{ FrameEvent, HeadersFrame }
+import akka.http.scaladsl.model.HttpResponse
 import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
 import akka.stream.stage.{ GraphStage, GraphStageLogic, InHandler, OutHandler }
 import akka.util.ByteString
-import com.twitter.hpack.HeaderListener
 import akka.http.impl.util._
 
 /** INTERNAL API */

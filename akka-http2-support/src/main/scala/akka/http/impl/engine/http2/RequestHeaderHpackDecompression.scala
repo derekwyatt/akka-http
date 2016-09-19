@@ -1,13 +1,16 @@
-package akka.http.impl.engine.parsing
+/**
+ * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
+ */
+
+package akka.http.impl.engine.http2
 
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.model2.HeadersFrame
 import akka.stream.stage._
 import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
 import com.twitter.hpack.HeaderListener
 
-final class RequestHeaderDecompression extends GraphStage[FlowShape[HeadersFrame, HttpRequest]] {
+final class RequestHeaderHpackDecompression extends GraphStage[FlowShape[HeadersFrame, HttpRequest]] {
 
   // FIXME Make configurable
   private final val maxHeaderSize = 4096

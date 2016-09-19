@@ -1,4 +1,8 @@
-package akka.http.impl.engine.parsing
+/**
+ * Copyright (C) 2009-2016 Lightbend Inc. <http://www.lightbend.com>
+ */
+
+package akka.http.impl.engine.http2
 
 import java.io.{ ByteArrayInputStream, InputStream }
 
