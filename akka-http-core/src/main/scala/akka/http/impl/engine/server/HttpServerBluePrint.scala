@@ -384,7 +384,7 @@ private[http] object HttpServerBluePrint {
             case r: RequestStart ⇒
               openRequests = openRequests.enqueue(r)
               messageEndPending = r.createEntity.isInstanceOf[StreamedEntityCreator[_, _]]
-              val rs = if (r.expect100Continue) {
+              val rs = if (r.expect100Continue && !settings.proxyMode) {
                 oneHundredContinueResponsePending = true
                 r.copy(createEntity = with100ContinueTrigger(r.createEntity))
               } else r
@@ -430,9 +430,9 @@ private[http] object HttpServerBluePrint {
 
           if (isEarlyResponse && response.status.isSuccess && !requestStart.expect100Continue)
             log.warning(
-              s"Sending a ${response.status.intValue} 'early' response before end of request was received... " +
+              "Sending a {} 'early' response before end of request was received... " +
                 "Note that the connection will be closed after this response. Also, many clients will not read early responses! " +
-                "Consider only issuing this response after the request data has been completely read!")
+                "Consider only issuing this response after the request data has been completely read!", response.status.intValue)
 
           emit(responseCtxOut, ResponseRenderingContext(response, requestStart.method, requestStart.protocol, close),
             pullHttpResponseIn)
