@@ -38,6 +38,7 @@ abstract class ServerSettings private[akka] () extends akka.http.javadsl.setting
   def defaultHostHeader: Host
   def websocketRandomFactory: () ⇒ Random
   def parserSettings: ParserSettings
+  def proxyMode: Boolean
 
   /* Java APIs */
 
@@ -57,6 +58,7 @@ abstract class ServerSettings private[akka] () extends akka.http.javadsl.setting
   override def getWebsocketRandomFactory = new Supplier[Random] {
     override def get(): Random = websocketRandomFactory()
   }
+  override def getProxyMode = proxyMode
 
   // ---
 
@@ -64,6 +66,7 @@ abstract class ServerSettings private[akka] () extends akka.http.javadsl.setting
   override def withMaxConnections(newValue: Int): ServerSettings = self.copy(maxConnections = newValue)
   override def withPipeliningLimit(newValue: Int): ServerSettings = self.copy(pipeliningLimit = newValue)
   override def withRemoteAddressHeader(newValue: Boolean): ServerSettings = self.copy(remoteAddressHeader = newValue)
+  override def withProxyMode(newValue: Boolean): ServerSettings = self.copy(proxyMode = newValue)
   override def withRawRequestUriHeader(newValue: Boolean): ServerSettings = self.copy(rawRequestUriHeader = newValue)
   override def withTransparentHeadRequests(newValue: Boolean): ServerSettings = self.copy(transparentHeadRequests = newValue)
   override def withVerboseErrorMessages(newValue: Boolean): ServerSettings = self.copy(verboseErrorMessages = newValue)
