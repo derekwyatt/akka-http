@@ -13,11 +13,14 @@ import scala.concurrent.Future
 import scala.annotation.tailrec
 import akka.event.LoggingAdapter
 import akka.util.ByteString
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.{ Flow, Source }
 import akka.http.scaladsl.model._
 import akka.http.impl.util._
 import RenderSupport._
+import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
+import akka.stream.stage.{ GraphStage, GraphStageLogic, InHandler, OutHandler }
 import headers._
+import scala.util.{ Failure, Success, Try }
 
 /**
  * INTERNAL API
@@ -109,15 +112,58 @@ private[http] class HttpRequestRendererFactory(
     def renderStreamed(body: Source[ByteString, Any]): RequestRenderingOutput = {
       val headerPart = Source.single(r.get)
       val stream = ctx.sendEntityTrigger match {
-        case None ⇒ headerPart ++ body
+        case None ⇒
+          headerPart ++ body
         case Some(future) ⇒
-          val barrier = Source.fromFuture(future).drop(1).asInstanceOf[Source[ByteString, Any]]
-          (headerPart ++ barrier ++ body).recoverWithRetries(-1, { case HttpResponseParser.OneHundredContinueError ⇒ Source.empty })
+          // val barrier = Source.fromFuture(future).drop(1).asInstanceOf[Source[ByteString, Any]]
+          // (headerPart ++ barrier ++ body).recoverWithRetries(-1, { case HttpResponseParser.OneHundredContinueError ⇒ Source.empty })
+          class LoggingGraphstage[T](future: Future[NotUsed]) extends GraphStage[FlowShape[T, T]] {
+            val in = Inlet[T]("log.in")
+            val out = Outlet[T]("log.out")
+
+            val shape: FlowShape[T, T] = FlowShape(in, out)
+
+            def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) with InHandler with OutHandler {
+              setHandlers(in, out, this)
+
+              var wasPulled = false
+              override def preStart(): Unit = {
+                future.onComplete {
+                  getAsyncCallback[Try[NotUsed]] {
+                    case Success(_) if wasPulled ⇒
+                      // println("out already pulled, now pulling in")
+                      pull(in)
+                    case Success(_)  ⇒
+                    // println("waiting for outside pull")
+                    case Failure(ex) ⇒ failStage(ex)
+                  }.invoke
+                }(interpreter.materializer.executionContext)
+              }
+
+              def onPush(): Unit = {
+                // println("pushing t")
+                push(out, grab(in))
+              }
+
+              def onPull(): Unit =
+                if (future.value.isDefined) {
+                  // println("Future was already completed, pulling directly")
+                  pull(in)
+                } else {
+                  // println("Waiting for future")
+                  wasPulled = true
+                }
+            }
+          }
+
+          /*val barrier =
+            Source.fromFuture(future).drop(1).asInstanceOf[Source[ByteString, Any]]*/
+          (headerPart ++ body.via(new LoggingGraphstage(future))).recoverWithRetries(-1, { case HttpResponseParser.OneHundredContinueError ⇒ Source.empty })
       }
       RequestRenderingOutput.Streamed(stream)
     }
 
-    def completeRequestRendering(): RequestRenderingOutput =
+    def completeRequestRendering(containsExpect100: Boolean): RequestRenderingOutput =
       entity match {
         case x if x.isKnownEmpty ⇒
           renderContentLength(0) ~~ CrLf
@@ -130,7 +176,12 @@ private[http] class HttpRequestRendererFactory(
 
         case HttpEntity.Default(_, contentLength, data) ⇒
           renderContentLength(contentLength) ~~ CrLf
-          renderStreamed(data.via(CheckContentLengthTransformer.flow(contentLength)))
+          renderStreamed(
+            if (containsExpect100)
+              data
+            else
+              data.via(CheckContentLengthTransformer.flow(contentLength))
+          )
 
         case HttpEntity.Chunked(_, chunks) ⇒
           r ~~ CrLf
@@ -140,7 +191,7 @@ private[http] class HttpRequestRendererFactory(
     renderRequestLine()
     renderHeaders(headers.toList)
     renderEntityContentType(r, entity)
-    completeRequestRendering()
+    completeRequestRendering(headers.contains(Expect.`100-continue`))
   }
 
   def renderStrict(ctx: RequestRenderingContext): ByteString =
